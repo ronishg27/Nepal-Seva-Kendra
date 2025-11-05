@@ -1,50 +1,20 @@
-import React, { useState } from 'react'
-import authService from './services/authService';
+import React from "react";
+import "./index.css";
+import Landing from "./pages/Landing";
+import Footer from "./components/Footer";
+import Header from "./components/Header";
+import { AuthProvider } from "./context/AuthContext";
 
 const App = () => {
-  const [formData, setFormData] = useState({
-    email:"",
-    password: "",
-    fullName: "NSK Admin",
-  })
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // console.log(formData)
+    return (
+        <div>
+            <AuthProvider>
+                <Header />
+                <Landing />
+                <Footer />
+            </AuthProvider>
+        </div>
+    );
+};
 
-    
-    authService.createNewAdmin(formData).then((data) => {
-      
-      console.log(data)
-    });
-  }
-  return (
-    <div>
-      <h2>Sign Up form: Admin</h2>
-      <form onSubmit={handleSubmit}>
-        {/* fullname */}
-        <input 
-          type="text" 
-          placeholder='Full Name' 
-          value={formData.fullName}
-          onChange={(e) => setFormData({...formData, fullName: e.target.value})}
-        />
-        {/* email */}
-        <input 
-          type="email" 
-          placeholder='Email' 
-          value={formData.email}
-          onChange={(e) => setFormData({...formData, email: e.target.value})}
-        />
-        <input 
-          type="password" 
-          placeholder='Password' 
-          value={formData.password}
-          onChange={(e) => setFormData({...formData, password: e.target.value})}
-        />
-        <button type="submit">Submit</button>
-      </form>
-    </div>
-  )
-}
-
-export default App
+export default App;
