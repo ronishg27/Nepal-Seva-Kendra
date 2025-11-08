@@ -1,5 +1,6 @@
-import { createContext, useContext, useEffect, useState } from 'react';
-import authService from '../services/authService';
+import { createContext, useContext, useEffect, useState } from "react";
+import authService from "../services/authService";
+import supabase from "../libs/supabaseConfig";
 
 const AuthContext = createContext(null);
 
@@ -11,11 +12,23 @@ export const AuthProvider = ({ children }) => {
     useEffect(() => {
         // Check if user is already logged in
         checkUser();
+        // Listen for auth state changes and refresh user/profile
+        const { data: subscription } = supabase.auth.onAuthStateChange(() => {
+            checkUser();
+        });
+
+        return () => {
+            subscription?.subscription?.unsubscribe?.();
+        };
     }, []);
 
     const checkUser = async () => {
         try {
-            const { user: currentUser, profile: userProfile, error } = await authService.getLoggedInUser();
+            const {
+                user: currentUser,
+                profile: userProfile,
+                error,
+            } = await authService.getLoggedInUser();
             if (error) {
                 setUser(null);
                 setProfile(null);
@@ -24,7 +37,7 @@ export const AuthProvider = ({ children }) => {
                 setProfile(userProfile);
             }
         } catch (error) {
-            console.error('Error checking user:', error);
+            console.error("Error checking user:", error);
             setUser(null);
             setProfile(null);
         } finally {
@@ -35,7 +48,11 @@ export const AuthProvider = ({ children }) => {
     const login = async (email, password) => {
         setLoading(true);
         try {
-            const { user: loggedInUser, profile: userProfile, error } = await authService.signInWithEmailPassword({
+            const {
+                user: loggedInUser,
+                profile: userProfile,
+                error,
+            } = await authService.signInServiceProvider({
                 email,
                 password,
             });
@@ -45,6 +62,8 @@ export const AuthProvider = ({ children }) => {
             }
 
             setUser(loggedInUser);
+
+            console.log("loggedInUser:", loggedInUser);
             setProfile(userProfile);
             return { success: true, user: loggedInUser, profile: userProfile };
         } catch (error) {
@@ -76,18 +95,19 @@ export const AuthProvider = ({ children }) => {
         login,
         logout,
         isAuthenticated: !!user,
-        isAdmin: profile?.role === 'admin',
-        isCitizen: profile?.role === 'user',
+        isAdmin: profile?.role === "admin",
+        isCitizen: profile?.role === "citizen",
     };
 
-    return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+    return (
+        <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+    );
 };
 
 export const useAuth = () => {
     const context = useContext(AuthContext);
     if (!context) {
-        throw new Error('useAuth must be used within an AuthProvider');
+        throw new Error("useAuth must be used within an AuthProvider");
     }
     return context;
 };
-

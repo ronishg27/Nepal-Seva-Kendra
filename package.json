@@ -7,10 +7,13 @@
         "dev": "vite",
         "build": "vite build",
         "lint": "eslint .",
-        "preview": "vite preview"
+        "preview": "vite preview",
+        "seed": "node src/scripts/seedServiceProvider.js"
     },
     "dependencies": {
         "@supabase/supabase-js": "^2.78.0",
+        "ad-bs-converter": "^0.5.0",
+        "adbsmagic": "^1.0.11",
         "date-fns": "^4.1.0",
         "lucide-react": "^0.552.0",
         "react": "^19.1.1",

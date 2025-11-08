@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { toast } from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 const ServiceProviderLogin = () => {
     const { login } = useAuth();
+    const navigate = useNavigate();
     const [usernameOrEmail, setUsernameOrEmail] = useState("");
     const [password, setPassword] = useState("");
     const [submitting, setSubmitting] = useState(false);
@@ -16,19 +18,33 @@ const ServiceProviderLogin = () => {
         }
         try {
             setSubmitting(true);
-            const result = await login(usernameOrEmail, password);
-            if (!result.success) {
-                toast.error(result.error?.message || "Invalid credentials");
-                return;
+            const result = await toast.promise(
+                (async () => {
+                    const resp = await login(usernameOrEmail, password);
+                    if (!resp.success) {
+                        throw new Error(
+                            resp.error?.message || "Invalid credentials",
+                        );
+                    }
+                    if (resp.profile?.role !== "service_provider") {
+                        throw new Error(
+                            "Access denied. Service provider account required.",
+                        );
+                    }
+                    return resp;
+                })(),
+                {
+                    loading: "Signing in...",
+                    success: "Logged in successfully",
+                    error: (e) => e.message || "Login failed",
+                },
+            );
+            if (result?.success) {
+                navigate("/admin", { replace: true });
             }
-            if (result.profile?.role !== "admin") {
-                // Treat service providers as admin role for now
-                toast.error("Access denied. Service provider account required.");
-                return;
-            }
-            toast.success("Logged in successfully");
-        } catch (err) {
-            toast.error("Login failed. Please try again");
+            // }
+            //  catch () {
+            //       // error toast already shown by toast.promise
         } finally {
             setSubmitting(false);
         }
@@ -74,5 +90,3 @@ const ServiceProviderLogin = () => {
 };
 
 export default ServiceProviderLogin;
-
-

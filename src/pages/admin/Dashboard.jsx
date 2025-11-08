@@ -6,7 +6,9 @@ const AdminDashboard = () => {
                     Admin Dashboard
                 </h1>
                 <div className="bg-white rounded-lg shadow-md p-6">
-                    <p className="text-gray-700">Welcome to the admin dashboard! This is a placeholder.</p>
+                    <p className="text-gray-700">
+                        Welcome to the admin dashboard! This is a placeholder.
+                    </p>
                 </div>
             </div>
         </div>
@@ -14,4 +16,3 @@ const AdminDashboard = () => {
 };
 
 export default AdminDashboard;
-
