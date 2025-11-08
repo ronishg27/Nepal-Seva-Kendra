@@ -2,7 +2,7 @@ import { Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 const ProtectedRoute = ({ children, requireAdmin = false }) => {
-    const { isAuthenticated, isAdmin, loading } = useAuth();
+    const { isAuthenticated, isAdmin, loading, getUserRole } = useAuth();
 
     if (loading) {
         return (
@@ -15,6 +15,7 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
     }
 
     if (requireAdmin && !isAdmin) {
+        // User is not admin or service_provider, redirect to citizen dashboard
         return <Navigate to="/dashboard" replace />;
     }
 

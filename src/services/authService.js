@@ -108,18 +108,13 @@ class AuthService {
         const { data, error } = await supabase.auth.getUser();
         if (error) return { user: null, error };
 
-        const { data: profile, error: profileError } = await supabase
-            .from("profiles")
-            .select("*")
-            .eq("id", data.user.id)
-            .single();
+      
+        // // If profile row doesn't exist yet, don't treat it as an auth failure
+        // if (profileError) {
+        //     return { user: data.user, profile: null, error: null };
+        // }
 
-        // If profile row doesn't exist yet, don't treat it as an auth failure
-        if (profileError) {
-            return { user: data.user, profile: null, error: null };
-        }
-
-        return { user: data.user, profile, error: null };
+        return { user: data.user, profile: data.user.user_metadata, error: null };
     }
 
     // -----------------------------------------

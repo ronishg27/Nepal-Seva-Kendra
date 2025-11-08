@@ -2,9 +2,10 @@ import { useState } from "react";
 import { toast } from "react-hot-toast";
 import authService from "../services/authService";
 import { useNavigate } from "react-router-dom";
+import supabase from "../libs/supabaseConfig";
 
 const CitizenLogin = () => {
-  const [email, setEmail] = useState("ronishunofficial@gmail.com");
+  const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
   const [isOTPSent, setIsOTPSent] = useState(false);
   const navigate = useNavigate();
@@ -44,7 +45,27 @@ const CitizenLogin = () => {
             const r = await authService.verifyCitizenOTP({ email, token: otp });
             if (r.error)
               throw new Error(r.error?.message || "OTP verification failed");
-            return r;
+            
+            // Get user role from profile or user_metadata
+            const userId = r.data?.user?.id;
+            let userRole = r.data?.user?.user_metadata?.role;
+            
+            // Try to fetch from profiles table if not in metadata
+            if (!userRole && userId) {
+              const { data: profile } = await supabase
+                .from("profiles")
+                .select("role")
+                .eq("id", userId)
+                .single();
+              userRole = profile?.role;
+            }
+            
+            // Fallback to user_metadata if profile doesn't have it
+            if (!userRole) {
+              userRole = r.data?.user?.user_metadata?.role;
+            }
+            
+            return { ...r, userRole };
           })(),
           {
             loading: "Verifying OTP...",
@@ -52,7 +73,15 @@ const CitizenLogin = () => {
             error: (e) => e.message || "OTP verification failed",
           }
         );
-        if (!resp.error) navigate("/dashboard", { replace: true });
+        if (!resp.error) {
+          // Redirect based on role
+          const role = resp.userRole || resp.data?.user?.user_metadata?.role;
+          if (role === "service_provider") {
+            navigate("/admin", { replace: true });
+          } else {
+            navigate("/dashboard", { replace: true });
+          }
+        }
       } catch (err) {
         // toast shown by toast.promise
       }

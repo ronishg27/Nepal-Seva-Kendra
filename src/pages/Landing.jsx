@@ -1,13 +1,28 @@
 /* eslint-disable no-unused-vars */
-import { useState } from "react";
-// import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import CitizenLogin from "../components/CitizenLogin";
 import ServiceProviderLogin from "../components/ServiceProviderLogin";
 import govLogo from "../assets/govlogo.png";
 
 const Landing = () => {
     const [loginType, setLoginType] = useState("citizen"); // 'citizen' or 'serviceProvider'
-    // const navigate = useNavigate();
+    const navigate = useNavigate();
+    const { isAuthenticated, profile, user, loading } = useAuth();
+
+    // Redirect authenticated users to their appropriate dashboard
+    useEffect(() => {
+        if (!loading && isAuthenticated) {
+            // Get role from profile.role or user.user_metadata.role
+            const role = profile?.role || user?.user_metadata?.role;
+            if (role === "service_provider") {
+                navigate("/admin", { replace: true });
+            } else {
+                navigate("/dashboard", { replace: true });
+            }
+        }
+    }, [isAuthenticated, profile, user, loading, navigate]);
 
     const servicesOffered = [
         "NID Application",

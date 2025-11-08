@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 import applicationService from "../../services/applicationService";
 import { BSToAD, ADToBS } from "adbsmagic";
 import { useAuth } from "../../context/AuthContext";
@@ -15,8 +16,8 @@ const Dashboard = () => {
     const [selectedService, setSelectedService] = useState(
         servicesOffered[0].value,
     );
-
-    const { logout } = useAuth(); // to ensure user is authenticated
+    const navigate = useNavigate();
+    const { logout } = useAuth();
     const [form, setForm] = useState({
         fullName: "",
         fullNameNp: "",
@@ -239,12 +240,35 @@ const Dashboard = () => {
         fetchRecentApplications();
     }, []);
 
+    const handleLogout = async () => {
+        try {
+            const result = await logout();
+            if (result.success) {
+                toast.success("Logged out successfully");
+                navigate("/", { replace: true });
+            } else {
+                toast.error(result.error?.message || "Failed to logout");
+            }
+        } catch (error) {
+            toast.error("An error occurred during logout");
+            console.log(error);
+        }
+    };
+
     return (
         <div className="min-h-screen bg-gray-50">
             <div className="container mx-auto px-4 py-8">
-                <h1 className="text-3xl font-bold text-nepal-darkBlue mb-6">
-                    Citizen Dashboard
-                </h1>
+                <div className="flex items-center justify-between mb-6">
+                    <h1 className="text-3xl font-bold text-nepal-darkBlue">
+                        Citizen Dashboard
+                    </h1>
+                    <button
+                        onClick={handleLogout}
+                        className="bg-red-600 text-white font-medium py-2 px-4 rounded-lg hover:bg-red-700 transition"
+                    >
+                        Logout
+                    </button>
+                </div>
 
                 <div className="bg-white rounded-lg shadow-md p-6">
                     <form onSubmit={handleSubmit} className="space-y-6">

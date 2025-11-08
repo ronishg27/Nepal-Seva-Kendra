@@ -88,6 +88,11 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
+    // Helper to get role from profile or user_metadata
+    const getUserRole = () => {
+        return profile?.role || user?.user_metadata?.role;
+    };
+
     const value = {
         user,
         profile,
@@ -95,8 +100,10 @@ export const AuthProvider = ({ children }) => {
         login,
         logout,
         isAuthenticated: !!user,
-        isAdmin: profile?.role === "admin",
-        isCitizen: profile?.role === "citizen",
+        isAdmin: getUserRole() === "admin" || getUserRole() === "service_provider",
+        isServiceProvider: getUserRole() === "service_provider",
+        isCitizen: getUserRole() === "citizen",
+        getUserRole,
     };
 
     return (
