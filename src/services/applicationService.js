@@ -69,7 +69,6 @@ async function listAllApplications({
     if (service) query = query.eq("service", service);
 
     const res = await query;
-    console.log(res);
     const { data, error } = res;
     if (error) throw error;
     return data || [];

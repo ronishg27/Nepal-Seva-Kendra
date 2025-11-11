@@ -1,7 +1,6 @@
-/* eslint-disable no-unused-vars */
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/useAuth";
 import CitizenLogin from "../components/CitizenLogin";
 import ServiceProviderLogin from "../components/ServiceProviderLogin";
 import govLogo from "../assets/govlogo.png";

@@ -1,12 +1,14 @@
 import { Navigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/useAuth";
 
 const ProtectedRoute = ({ children, requireAdmin = false }) => {
-    const { isAuthenticated, isAdmin, loading, getUserRole } = useAuth();
+    const { isAuthenticated, isAdmin, loading } = useAuth();
 
     if (loading) {
         return (
-            <div className="min-h-[40vh] flex items-center justify-center text-gray-600">Loading...</div>
+            <div className="min-h-[40vh] flex items-center justify-center text-gray-600">
+                Loading...
+            </div>
         );
     }
 
@@ -23,5 +25,3 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
 };
 
 export default ProtectedRoute;
-
-

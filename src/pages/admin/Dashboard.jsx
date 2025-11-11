@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth";
 import applicationService from "../../services/applicationService";
 
 const servicesOffered = [
@@ -32,7 +32,7 @@ const AdminDashboard = () => {
         service: "",
     });
 
-    const fetchApplications = async () => {
+    const fetchApplications = useCallback(async () => {
         setLoading(true);
         try {
             const data = await applicationService.listAllApplications({
@@ -46,11 +46,11 @@ const AdminDashboard = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [filters.service, filters.status]);
 
     useEffect(() => {
         fetchApplications();
-    }, [filters]);
+    }, [filters, fetchApplications]);
 
     const handleLogout = async () => {
         try {
@@ -62,6 +62,7 @@ const AdminDashboard = () => {
                 toast.error(result.error?.message || "Failed to logout");
             }
         } catch (error) {
+            console.error(error);
             toast.error("An error occurred during logout");
         }
     };
@@ -72,6 +73,7 @@ const AdminDashboard = () => {
             setSelectedApp(app);
             setShowModal(true);
         } catch (err) {
+            console.error(err);
             toast.error("Failed to load application details");
         }
     };
@@ -81,18 +83,23 @@ const AdminDashboard = () => {
         setUpdatingStatus(true);
         try {
             await toast.promise(
-                applicationService.updateApplicationStatus(selectedApp.id, newStatus),
+                applicationService.updateApplicationStatus(
+                    selectedApp.id,
+                    newStatus,
+                ),
                 {
                     loading: "Updating status...",
                     success: "Status updated successfully",
                     error: (err) => err?.message || "Failed to update status",
-                }
+                },
             );
             await fetchApplications();
-            const updatedApp = await applicationService.getApplicationById(selectedApp.id);
+            const updatedApp = await applicationService.getApplicationById(
+                selectedApp.id,
+            );
             setSelectedApp(updatedApp);
-        } catch (err) {
-            // Error handled by toast
+            // } catch (err) {
+            //     // Error handled by toast
         } finally {
             setUpdatingStatus(false);
         }
@@ -109,7 +116,10 @@ const AdminDashboard = () => {
     };
 
     const getServiceLabel = (serviceValue) => {
-        return servicesOffered.find((s) => s.value === serviceValue)?.label || serviceValue;
+        return (
+            servicesOffered.find((s) => s.value === serviceValue)?.label ||
+            serviceValue
+        );
     };
 
     return (
@@ -137,7 +147,10 @@ const AdminDashboard = () => {
                             <select
                                 value={filters.status}
                                 onChange={(e) =>
-                                    setFilters({ ...filters, status: e.target.value })
+                                    setFilters({
+                                        ...filters,
+                                        status: e.target.value,
+                                    })
                                 }
                                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-nepal-blue"
                             >
@@ -155,7 +168,10 @@ const AdminDashboard = () => {
                             <select
                                 value={filters.service}
                                 onChange={(e) =>
-                                    setFilters({ ...filters, service: e.target.value })
+                                    setFilters({
+                                        ...filters,
+                                        service: e.target.value,
+                                    })
                                 }
                                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-nepal-blue"
                             >
@@ -169,7 +185,9 @@ const AdminDashboard = () => {
                         </div>
                         <div className="flex items-end">
                             <button
-                                onClick={() => setFilters({ status: "", service: "" })}
+                                onClick={() =>
+                                    setFilters({ status: "", service: "" })
+                                }
                                 className="w-full bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-lg hover:bg-gray-300 transition"
                             >
                                 Clear Filters
@@ -186,7 +204,9 @@ const AdminDashboard = () => {
                         </h2>
                     </div>
                     {loading ? (
-                        <div className="p-8 text-center text-gray-600">Loading...</div>
+                        <div className="p-8 text-center text-gray-600">
+                            Loading...
+                        </div>
                     ) : applications.length === 0 ? (
                         <div className="p-8 text-center text-gray-600">
                             No applications found.
@@ -218,7 +238,10 @@ const AdminDashboard = () => {
                                 </thead>
                                 <tbody className="bg-white divide-y divide-gray-200">
                                     {applications.map((app) => (
-                                        <tr key={app.id} className="hover:bg-gray-50">
+                                        <tr
+                                            key={app.id}
+                                            className="hover:bg-gray-50"
+                                        >
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
                                                 {getServiceLabel(app.service)}
                                             </td>
@@ -230,13 +253,15 @@ const AdminDashboard = () => {
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                                                 {app.created_at
-                                                    ? new Date(app.created_at).toLocaleDateString()
+                                                    ? new Date(
+                                                          app.created_at,
+                                                      ).toLocaleDateString()
                                                     : "—"}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <span
                                                     className={`inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium border ${getStatusColor(
-                                                        app.status
+                                                        app.status,
                                                     )}`}
                                                 >
                                                     {app.status}
@@ -244,7 +269,11 @@ const AdminDashboard = () => {
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm">
                                                 <button
-                                                    onClick={() => handleViewDetails(app.id)}
+                                                    onClick={() =>
+                                                        handleViewDetails(
+                                                            app.id,
+                                                        )
+                                                    }
                                                     className="text-nepal-blue hover:text-blue-700 font-medium"
                                                 >
                                                     View Details
@@ -278,10 +307,12 @@ const AdminDashboard = () => {
                             {/* Status and Actions */}
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <span className="text-sm text-gray-600">Status:</span>
+                                    <span className="text-sm text-gray-600">
+                                        Status:
+                                    </span>
                                     <span
                                         className={`ml-2 inline-flex items-center px-3 py-1 rounded text-sm font-medium border ${getStatusColor(
-                                            selectedApp.status
+                                            selectedApp.status,
                                         )}`}
                                     >
                                         {selectedApp.status}
@@ -291,21 +322,33 @@ const AdminDashboard = () => {
                                     {selectedApp.status === "submitted" && (
                                         <>
                                             <button
-                                                onClick={() => handleUpdateStatus("in_review")}
+                                                onClick={() =>
+                                                    handleUpdateStatus(
+                                                        "in_review",
+                                                    )
+                                                }
                                                 disabled={updatingStatus}
                                                 className="bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 transition disabled:opacity-50"
                                             >
                                                 Mark In Review
                                             </button>
                                             <button
-                                                onClick={() => handleUpdateStatus("approved")}
+                                                onClick={() =>
+                                                    handleUpdateStatus(
+                                                        "approved",
+                                                    )
+                                                }
                                                 disabled={updatingStatus}
                                                 className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition disabled:opacity-50"
                                             >
                                                 Approve
                                             </button>
                                             <button
-                                                onClick={() => handleUpdateStatus("rejected")}
+                                                onClick={() =>
+                                                    handleUpdateStatus(
+                                                        "rejected",
+                                                    )
+                                                }
                                                 disabled={updatingStatus}
                                                 className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition disabled:opacity-50"
                                             >
@@ -316,14 +359,22 @@ const AdminDashboard = () => {
                                     {selectedApp.status === "in_review" && (
                                         <>
                                             <button
-                                                onClick={() => handleUpdateStatus("approved")}
+                                                onClick={() =>
+                                                    handleUpdateStatus(
+                                                        "approved",
+                                                    )
+                                                }
                                                 disabled={updatingStatus}
                                                 className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition disabled:opacity-50"
                                             >
                                                 Approve
                                             </button>
                                             <button
-                                                onClick={() => handleUpdateStatus("rejected")}
+                                                onClick={() =>
+                                                    handleUpdateStatus(
+                                                        "rejected",
+                                                    )
+                                                }
                                                 disabled={updatingStatus}
                                                 className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition disabled:opacity-50"
                                             >
@@ -442,7 +493,9 @@ const AdminDashboard = () => {
                                             </p>
                                             {selectedApp.grandfather_name_np && (
                                                 <p className="mt-1 text-sm text-gray-600">
-                                                    {selectedApp.grandfather_name_np}
+                                                    {
+                                                        selectedApp.grandfather_name_np
+                                                    }
                                                 </p>
                                             )}
                                         </div>
@@ -460,15 +513,21 @@ const AdminDashboard = () => {
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         {selectedApp.citizenship_front_url && (
                                             <div>
-                                                <p className="text-sm text-gray-600 mb-2">Front</p>
+                                                <p className="text-sm text-gray-600 mb-2">
+                                                    Front
+                                                </p>
                                                 <a
-                                                    href={selectedApp.citizenship_front_url}
+                                                    href={
+                                                        selectedApp.citizenship_front_url
+                                                    }
                                                     target="_blank"
                                                     rel="noreferrer"
                                                     className="block"
                                                 >
                                                     <img
-                                                        src={selectedApp.citizenship_front_url}
+                                                        src={
+                                                            selectedApp.citizenship_front_url
+                                                        }
                                                         alt="Citizenship Front"
                                                         className="w-full h-64 object-contain border border-gray-300 rounded-lg"
                                                     />
@@ -477,15 +536,21 @@ const AdminDashboard = () => {
                                         )}
                                         {selectedApp.citizenship_back_url && (
                                             <div>
-                                                <p className="text-sm text-gray-600 mb-2">Back</p>
+                                                <p className="text-sm text-gray-600 mb-2">
+                                                    Back
+                                                </p>
                                                 <a
-                                                    href={selectedApp.citizenship_back_url}
+                                                    href={
+                                                        selectedApp.citizenship_back_url
+                                                    }
                                                     target="_blank"
                                                     rel="noreferrer"
                                                     className="block"
                                                 >
                                                     <img
-                                                        src={selectedApp.citizenship_back_url}
+                                                        src={
+                                                            selectedApp.citizenship_back_url
+                                                        }
                                                         alt="Citizenship Back"
                                                         className="w-full h-64 object-contain border border-gray-300 rounded-lg"
                                                     />
@@ -500,19 +565,25 @@ const AdminDashboard = () => {
                             <div className="pt-4 border-t border-gray-200">
                                 <div className="grid grid-cols-2 gap-4 text-sm">
                                     <div>
-                                        <span className="text-gray-600">Submitted:</span>
+                                        <span className="text-gray-600">
+                                            Submitted:
+                                        </span>
                                         <span className="ml-2 text-gray-900">
                                             {selectedApp.created_at
-                                                ? new Date(selectedApp.created_at).toLocaleString()
+                                                ? new Date(
+                                                      selectedApp.created_at,
+                                                  ).toLocaleString()
                                                 : "—"}
                                         </span>
                                     </div>
                                     {selectedApp.processed_at && (
                                         <div>
-                                            <span className="text-gray-600">Processed:</span>
+                                            <span className="text-gray-600">
+                                                Processed:
+                                            </span>
                                             <span className="ml-2 text-gray-900">
                                                 {new Date(
-                                                    selectedApp.processed_at
+                                                    selectedApp.processed_at,
                                                 ).toLocaleString()}
                                             </span>
                                         </div>

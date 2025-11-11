@@ -8,8 +8,10 @@ import { AuthProvider } from "./context/AuthContext";
 import Dashboard from "./pages/user/Dashboard";
 import AdminDashboard from "./pages/admin/Dashboard";
 import ProtectedRoute from "./routes/ProtectedRoute";
+import seedServiceProvider from "./scripts/seedServiceProvider";
 
 const App = () => {
+    seedServiceProvider();
     return (
         <div>
             <AuthProvider>

@@ -1,8 +1,7 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import authService from "../services/authService";
 import supabase from "../libs/supabaseConfig";
-
-const AuthContext = createContext(null);
+import { AuthContext } from "./AuthContextCore";
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
@@ -63,7 +62,7 @@ export const AuthProvider = ({ children }) => {
 
             setUser(loggedInUser);
 
-            console.log("loggedInUser:", loggedInUser);
+            // debug log removed
             setProfile(userProfile);
             return { success: true, user: loggedInUser, profile: userProfile };
         } catch (error) {
@@ -100,7 +99,8 @@ export const AuthProvider = ({ children }) => {
         login,
         logout,
         isAuthenticated: !!user,
-        isAdmin: getUserRole() === "admin" || getUserRole() === "service_provider",
+        isAdmin:
+            getUserRole() === "admin" || getUserRole() === "service_provider",
         isServiceProvider: getUserRole() === "service_provider",
         isCitizen: getUserRole() === "citizen",
         getUserRole,
@@ -111,10 +111,4 @@ export const AuthProvider = ({ children }) => {
     );
 };
 
-export const useAuth = () => {
-    const context = useContext(AuthContext);
-    if (!context) {
-        throw new Error("useAuth must be used within an AuthProvider");
-    }
-    return context;
-};
+// useAuth has been moved to src/context/useAuth.jsx to preserve Fast Refresh

@@ -3,7 +3,7 @@ import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import applicationService from "../../services/applicationService";
 import { BSToAD, ADToBS } from "adbsmagic";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth";
 
 const servicesOffered = [
     { value: "nid", label: "NID Application" },
@@ -146,10 +146,7 @@ const Dashboard = () => {
                         );
                     } catch (err) {
                         // If storage bucket missing or upload fails, continue without blocking DB insert
-                        console.warn(
-                            "Image upload failed:",
-                            err?.message || err,
-                        );
+                        void err;
                     }
 
                     // Insert application metadata
@@ -227,10 +224,8 @@ const Dashboard = () => {
             });
             setRecentApps(data || []);
         } catch (err) {
-            console.warn(
-                "Failed to load recent applications:",
-                err?.message || err,
-            );
+            // Failed to load recent applications - debug log removed
+            void err;
         } finally {
             setAppsLoading(false);
         }
@@ -251,7 +246,7 @@ const Dashboard = () => {
             }
         } catch (error) {
             toast.error("An error occurred during logout");
-            console.log(error);
+            void error;
         }
     };
 
